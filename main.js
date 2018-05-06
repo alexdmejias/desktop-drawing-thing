@@ -1,8 +1,12 @@
 const electron = require('electron')
+var mouse = require('osx-mouse')();
+
 // Module to control application life.
 const app = electron.app
+const Menu = electron.Menu;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
+const ipcMain = electron.ipcMain
 
 const path = require('path')
 const url = require('url')
@@ -11,10 +15,59 @@ const url = require('url')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+const menuTemplate = [
+  
+  {
+    label: 'View',
+    submenu: [
+      {role: 'reload'},
+      {role: 'forcereload'},
+      {role: 'toggledevtools'},
+      {type: 'separator'},
+      {role: 'resetzoom'},
+      {role: 'zoomin'},
+      {role: 'zoomout'},
+      {type: 'separator'},
+      {role: 'togglefullscreen'},
+      {
+        label: 'start recording',
+        click () {
+          mainWindow.webContents.send('startRecording')
+        }
+      }, {
+        label: 'stop recording',
+        click () {
+          mainWindow.webContents.send('stopRecording')
+        }
+      }, {
+        label: 'animate',
+        click () {
+          mainWindow.webContents.send('animateStart')
+        }
+      }
+
+    ]
+  }
+]
+
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+  })
 
+  mouse.on('left-down', function(x, y) {
+    mainWindow.webContents.send('mouse', {type: 'down', x, y})
+  });
+  mouse.on('left-up', function(x, y) {
+    mainWindow.webContents.send('mouse', {type: 'up', x, y})
+  });
+  
+  mouse.on('move', function(x, y) {
+    mainWindow.webContents.send('mouse', {type: 'move', x, y})
+  });
+  
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -25,12 +78,18 @@ function createWindow () {
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+  
+  // require('./menu/mainmenu')
+
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null
+    mouse.destroy();
   })
 }
 

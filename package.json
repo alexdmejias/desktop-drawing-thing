@@ -17,6 +17,15 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^1.8.4"
+    "electron": "^1.8.4",
+    "electron-rebuild": "^1.7.3"
+  },
+  "dependencies": {
+    "iohook": "^0.1.15",
+    "osx-mouse": "^1.2.1"
+  },
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "1.8.4"
   }
 }
